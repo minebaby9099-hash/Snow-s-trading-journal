@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Edge Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12161d;
+    --panel: #1a2028;
+    --panel-2: #1f2630;
+    --paper: #ede6d3;
+    --paper-2: #e4dcc4;
+    --ink: #2a2318;
+    --ink-soft: #55503f;
+    --brass: #b8935b;
+    --brass-soft: #8f7147;
+    --green: #4c8064;
+    --green-deep: #3a6650;
+    --red: #b3543f;
+    --red-deep: #8f3f2e;
+    --muted: #8b93a3;
+    --hair: #2c333f;
+    --font-display: 'Fraunces', serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: #dfe3ea;
+    font-family: var(--font-body);
+    padding: 32px 20px 80px;
+  }
+  .wrap{ max-width: 1040px; margin: 0 auto; }
+
+  /* Header */
+  .masthead{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 20px; margin-bottom: 24px; gap: 20px; flex-wrap: wrap;
+  }
+  .masthead h1{
+    font-family: var(--font-display);
+    font-weight: 600; font-size: 34px; letter-spacing: 0.2px;
+    margin: 0 0 4px;
+    color: #f2ede0;
+  }
+  .masthead .sub{ color: var(--muted); font-size: 13px; letter-spacing: 0.3px; }
+  .reset-btn{
+    background: none; border: 1px solid var(--hair); color: var(--muted);
+    font-family: var(--font-body); font-size: 12px; padding: 8px 14px;
+    border-radius: 3px; cursor: pointer; transition: all .15s;
+  }
+  .reset-btn:hover{ border-color: var(--red); color: var(--red); }
+
+  .month-tabs{
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 24px;
+  }
+  .month-tab{
+    background: var(--panel); border: 1px solid var(--hair); color: var(--muted);
+    font-family: var(--font-mono); font-size: 12.5px; padding: 8px 14px;
+    border-radius: 20px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .month-tab:hover{ border-color: var(--brass-soft); color: #dfe3ea; }
+  .month-tab.active{
+    background: var(--brass); border-color: var(--brass); color: #1a1408; font-weight: 600;
+  }
+  .month-tab-add{
+    background: none; border: 1px dashed var(--hair); color: var(--muted);
+    font-family: var(--font-mono); font-size: 12.5px; padding: 8px 14px;
+    border-radius: 20px; cursor: pointer; transition: all .15s;
+  }
+  .month-tab-add:hover{ border-color: var(--brass); color: var(--brass); }
+  .month-tab[disabled], .month-tab-add[disabled]{ opacity: 0.4; cursor: not-allowed; }
+  .month-tabs.locked{ pointer-events: none; }
+
+  /* Verdict */
+  .verdict{
+    background: linear-gradient(135deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--hair);
+    border-left: 3px solid var(--brass);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.45;
+    color: #f2ede0;
+  }
+  .verdict .tag{
+    display:inline-block; font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--brass);
+    margin-bottom: 8px;
+  }
+
+  /* Stat strip */
+  .stats{
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px; background: var(--hair);
+    border: 1px solid var(--hair); border-radius: 6px; overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .stat{
+    background: var(--panel); padding: 16px 14px;
+  }
+  .stat .label{
+    font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .stat .value{
+    font-family: var(--font-mono); font-size: 22px; font-weight: 600;
+    color: #f2ede0;
+  }
+  .stat .value.pos{ color: var(--green); }
+  .stat .value.neg{ color: var(--red); }
+  .stat .foot{ font-size: 10.5px; color: var(--muted); margin-top: 4px; font-family: var(--font-mono); }
+
+  section.panel{
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 6px;
+    padding: 20px 22px; margin-bottom: 24px;
+  }
+  .panel h2{
+    font-family: var(--font-display); font-weight: 500; font-size: 17px;
+    margin: 0 0 4px; color: #f2ede0;
+  }
+  .panel .desc{ font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+
+  /* Charts */
+  .chart-row{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 720px){ .chart-row{ grid-template-columns: 1fr; } }
+  svg text{ font-family: var(--font-mono); fill: var(--muted); font-size: 10px; }
+  .empty-note{ color: var(--muted); font-size: 13px; font-style: italic; padding: 20px 0; text-align:center; }
+
+  /* Adherence compare */
+  .compare{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px){ .compare{ grid-template-columns: 1fr; } }
+  .compare-card{ background: var(--panel-2); border: 1px solid var(--hair); border-radius: 5px; padding: 14px 16px; }
+  .compare-card .h{ font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--brass); margin-bottom: 8px; }
+  .compare-card .big{ font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
+  .compare-card .sub{ font-size: 11.5px; color: var(--muted); margin-top: 4px; font-family: var(--font-mono); }
+
+  /* Entry form */
+  .entry-form{
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+  }
+  .field{ display:flex; flex-direction: column; gap: 6px; }
+  .field label{ font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+  .field input[type=text], .field input[type=number], .field input[type=date]{
+    background: var(--panel-2); border: 1px solid var(--hair); color: #f2ede0;
+    font-family: var(--font-mono); font-size: 13.5px; padding: 9px 10px; border-radius: 4px;
+    min-width: 90px;
+  }
+  .field.wide input{ min-width: 140px; }
+  .field.check{ flex-direction: row; align-items: center; gap: 8px; padding-bottom: 9px; }
+  .field.check label{ text-transform: none; font-size: 13px; color: #dfe3ea; letter-spacing: 0; }
+  .add-btn{
+    background: var(--brass); color: #1a1408; border: none; font-family: var(--font-body);
+    font-weight: 600; font-size: 13.5px; padding: 10px 20px; border-radius: 4px; cursor: pointer;
+    transition: background .15s;
+  }
+  .add-btn:hover{ background: #cba876; }
+  .form-error{ color: var(--red); font-size: 12px; margin-top: 8px; display:none; }
+
+  /* Ledger page (paper table) */
+  .ledger-page{
+    background: var(--paper); border-radius: 4px; padding: 18px 20px 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    max-height: 420px; overflow-y: auto;
+  }
+  table{ width: 100%; border-collapse: collapse; }
+  thead th{
+    text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--ink-soft); padding: 0 8px 8px; border-bottom: 1.5px solid var(--brass-soft);
+    position: sticky; top:0; background: var(--paper);
+  }
+  tbody td{
+    font-family: var(--font-mono); font-size: 13px; color: var(--ink);
+    padding: 9px 8px; border-bottom: 1px solid var(--paper-2);
+    white-space: nowrap;
+  }
+  tbody tr:hover{ background: var(--paper-2); }
+  tbody tr{ cursor: pointer; }
+  .shot-flag{ font-size: 13px; }
+  td.r-pos{ color: var(--green-deep); font-weight: 600; }
+  td.r-neg{ color: var(--red-deep); font-weight: 600; }
+  td.setup{ font-family: var(--font-body); font-size: 12.5px; color: var(--ink-soft); white-space: normal; }
+  .del-btn{
+    background:none; border:none; color: var(--ink-soft); cursor:pointer; font-size: 15px;
+    padding: 2px 6px; border-radius: 3px;
+  }
+  .del-btn:hover{ color: var(--red-deep); background: rgba(179,84,63,0.12); }
+  .rule-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; }
+  .rule-dot.yes{ background: var(--green-deep); }
+  .rule-dot.no{ background: var(--red-deep); }
+
+  .field input[type=file]{
+    background: var(--panel-2); border: 1px solid var(--hair); color: var(--muted);
+    font-family: var(--font-body); font-size: 12px; padding: 7px 8px; border-radius: 4px;
+    min-width: 170px; max-width: 210px;
+  }
+  .shot-btn{
+    background: var(--paper-2); border: 1px solid var(--brass-soft); color: var(--ink-soft);
+    font-family: var(--font-mono); font-size: 11px; padding: 4px 9px; border-radius: 3px; cursor: pointer;
+  }
+  .shot-btn:hover{ background: var(--brass); color: #1a1408; }
+  .shot-none{ color: var(--ink-soft); opacity: 0.5; font-size: 12px; }
+
+  .lightbox-overlay{
+    position: fixed; inset: 0; background: rgba(10,12,16,0.85);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+    padding: 40px 20px;
+  }
+  .lightbox-box{ max-width: min(90vw, 900px); max-height: 85vh; position: relative; }
+  .lightbox-box img{ max-width: 100%; max-height: 85vh; border-radius: 6px; display:block; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .lightbox-close{
+    position: absolute; top: -14px; right: -14px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--brass); color: #1a1408; border: none; font-size: 16px; cursor: pointer;
+    display:flex; align-items:center; justify-content:center; font-family: var(--font-body); font-weight:600;
+  }
+  .lightbox-loading{ color: #f2ede0; font-family: var(--font-mono); font-size: 13px; }
+
+  .detail-box{
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 8px;
+    padding: 28px 30px 30px; max-width: min(94vw, 1080px); max-height: 88vh; overflow-y: auto;
+    position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .detail-header{ margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--hair); }
+  .detail-eyebrow{ font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brass); margin-bottom: 6px; }
+  .detail-title{ font-family: var(--font-display); font-size: 22px; color: #f2ede0; font-weight: 500; }
+  .detail-body{
+    display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start;
+  }
+  .detail-body.no-shot{ grid-template-columns: 1fr; max-width: 480px; }
+  .detail-body.no-shot .detail-shot-area{ display: none; }
+  @media (max-width: 720px){
+    .detail-body{ grid-template-columns: 1fr; }
+  }
+  .detail-grid{
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+  }
+  .detail-field{ }
+  .detail-label{ font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .detail-value{ font-family: var(--font-mono); font-size: 15px; color: #f2ede0; }
+  .detail-value.r-pos-text{ color: var(--green); }
+  .detail-value.r-neg-text{ color: var(--red); }
+  .detail-shot-area{ display: flex; align-items: flex-start; justify-content: center; }
+  .detail-shot-area img{
+    max-width: 100%; max-height: 76vh; width: 100%; object-fit: contain;
+    border-radius: 6px; display: block; background: #0b0d11; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  .detail-no-shot{ color: var(--muted); font-size: 13px; font-style: italic; }
+
+  .modal-box{
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 8px;
+    padding: 22px 24px; max-width: min(90vw, 380px); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-title{ font-family: var(--font-display); font-size: 17px; color: #f2ede0; margin-bottom: 14px; line-height: 1.4; }
+  .modal-input{
+    width: 100%; background: var(--panel-2); border: 1px solid var(--hair); color: #f2ede0;
+    font-family: var(--font-mono); font-size: 14px; padding: 10px 12px; border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .modal-actions{ display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-btn{
+    font-family: var(--font-body); font-weight: 600; font-size: 13px; padding: 9px 16px;
+    border-radius: 4px; cursor: pointer; border: none;
+  }
+  .modal-btn.ghost{ background: none; border: 1px solid var(--hair); color: var(--muted); }
+  .modal-btn.ghost:hover{ color: #dfe3ea; border-color: var(--muted); }
+  .modal-btn.primary{ background: var(--brass); color: #1a1408; }
+  .modal-btn.primary:hover{ background: #cba876; }
+  .modal-btn.danger{ background: var(--red); color: #1a1408; }
+  .modal-btn.danger:hover{ background: #c9634a; }
+
+  .toast{
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--panel-2); border: 1px solid var(--brass-soft); color: #f2ede0;
+    font-family: var(--font-body); font-size: 13px; padding: 10px 18px; border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 1100; opacity: 0; transition: opacity .2s;
+  }
+  .toast.show{ opacity: 1; }
+
+  .loading{ color: var(--muted); font-size: 13px; padding: 30px 0; text-align:center; font-family: var(--font-mono); }
+  footer{ text-align:center; color: var(--muted); font-size: 11.5px; margin-top: 30px; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>The Edge Ledger</h1>
+      <div class="sub">A running audit of your discretionary system</div>
+    </div>
+    <button class="reset-btn" id="resetBtn">Clear this month</button>
+  </div>
+
+  <div class="month-tabs" id="monthTabs"></div>
+
+  <div class="verdict">
+    <div class="tag">Reading</div>
+    <div id="verdictText">Loading your ledger…</div>
+  </div>
+
+  <div class="stats" id="statsGrid"></div>
+
+  <section class="panel">
+    <h2>Log a trade</h2>
+    <div class="desc">One row per trade. R-multiple = P&amp;L ÷ initial risk.</div>
+    <div class="entry-form">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Time</label>
+        <input type="time" id="f-time">
+      </div>
+      <div class="field wide">
+        <label>Symbol</label>
+        <input type="text" id="f-symbol" placeholder="e.g. ES">
+      </div>
+      <div class="field">
+        <label>R-multiple</label>
+        <input type="number" id="f-r" step="0.01" placeholder="e.g. -1 or 2.3">
+      </div>
+      <div class="field">
+        <label>P&amp;L $ (optional)</label>
+        <input type="number" id="f-pnl" step="0.01" placeholder="optional">
+      </div>
+      <div class="field wide">
+        <label>Setup / tag</label>
+        <input type="text" id="f-setup" placeholder="e.g. breakout retest">
+      </div>
+      <div class="field check">
+        <input type="checkbox" id="f-rules" checked>
+        <label for="f-rules">Followed my rules</label>
+      </div>
+      <div class="field wide">
+        <label>Screenshot (optional)</label>
+        <input type="file" id="f-shot" accept="image/*">
+      </div>
+      <button class="add-btn" id="addBtn">Add entry</button>
+    </div>
+    <div class="form-error" id="formError">Enter a date and an R-multiple to log the trade.</div>
+  </section>
+
+  <section class="panel">
+    <h2>Shape of the edge</h2>
+    <div class="desc">Distribution of trade outcomes and cumulative R over time.</div>
+    <div class="chart-row">
+      <div>
+        <div id="histChart"></div>
+      </div>
+      <div>
+        <div id="equityChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Discipline check</h2>
+    <div class="desc">Expectancy when you followed your rules vs. when you didn't.</div>
+    <div class="compare" id="adherenceCompare"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Trade log</h2>
+    <div class="desc" id="logDesc"></div>
+    <div class="ledger-page">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Time</th><th>Symbol</th><th>R</th><th>P&amp;L</th><th>Setup</th><th>Rules</th><th>Shot</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Stored privately in this artifact · not financial advice</footer>
+</div>
+
+<script>
+let trades = [];
+let loaded = false;
+let monthsIndex = [];
+let currentMonthId = null;
+let busy = false; // true while a trade add/delete or month switch is mid-save, to prevent cross-month races
+
+const $ = id => document.getElementById(id);
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+$('f-date').value = todayStr();
+
+function nowTimeStr(){
+  const d = new Date();
+  return d.toTimeString().slice(0,5);
+}
+$('f-time').value = nowTimeStr();
+
+function resizeImage(file, maxWidth){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('image decode failed'));
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        // Fill white first: screenshots with transparency would otherwise turn black on JPEG conversion.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        // Step quality down until the encoded size is safely small, so it always fits in storage.
+        let quality = 0.75;
+        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+        while(dataUrl.length > 700000 && quality > 0.25){
+          quality -= 0.15;
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(dataUrl);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function monthLabelForNow(){
+  const d = new Date();
+  return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+}
+
+async function initMonths(){
+  let idx = null;
+  try{
+    const res = await window.storage.get('months_index', false);
+    idx = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){ idx = null; }
+
+  if(!idx || !idx.length){
+    // First time on the month-aware version — migrate any pre-existing unscoped trades
+    // into a real month so nothing already logged gets lost.
+    let legacy = [];
+    try{
+      const res = await window.storage.get('trades', false);
+      legacy = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){ legacy = []; }
+
+    const id = 'm_' + Date.now();
+    idx = [{ id, label: monthLabelForNow(), createdAt: Date.now() }];
+    try{ await window.storage.set('months_index', JSON.stringify(idx), false); }catch(e){}
+    try{ await window.storage.set('trades_' + id, JSON.stringify(legacy), false); }catch(e){}
+    try{ await window.storage.set('active_month', id, false); }catch(e){}
+    currentMonthId = id;
+  }else{
+    monthsIndex = idx;
+    let active = null;
+    try{
+      const res = await window.storage.get('active_month', false);
+      active = res && res.value ? res.value : null;
+    }catch(e){ active = null; }
+    currentMonthId = (active && idx.find(m => m.id === active)) ? active : idx[idx.length-1].id;
+  }
+  monthsIndex = idx;
+}
+
+function renderMonthTabs(){
+  const el = $('monthTabs');
+  el.innerHTML = monthsIndex.map(m => `
+    <button class="month-tab ${m.id===currentMonthId?'active':''}" onclick="switchMonth('${m.id}')" ${busy?'disabled':''}>${escapeHtml(m.label)}</button>
+  `).join('') + `<button class="month-tab-add" id="addMonthBtn" ${busy?'disabled':''}>+ New month</button>`;
+  el.classList.toggle('locked', busy);
+  $('addMonthBtn').addEventListener('click', createNewMonth);
+}
+
+async function switchMonth(id){
+  if(busy){
+    showToast('Hang on — a trade is still saving.');
+    return;
+  }
+  if(id === currentMonthId) return;
+  busy = true;
+  renderMonthTabs();
+  currentMonthId = id;
+  try{ await window.storage.set('active_month', id, false); }catch(e){}
+  loaded = false;
+  render();
+  await loadTrades();
+  busy = false;
+  renderMonthTabs();
+}
+window.switchMonth = switchMonth;
+
+async function createNewMonth(){
+  if(busy){
+    showToast('Hang on — a trade is still saving.');
+    return;
+  }
+  const suggestion = monthLabelForNow();
+  const label = await showPromptModal('Name this new month', suggestion, 'Create');
+  if(label === null) return;
+  const cleanLabel = label.trim() || suggestion;
+
+  busy = true;
+  renderMonthTabs();
+
+  const id = 'm_' + Date.now();
+  monthsIndex.push({ id, label: cleanLabel, createdAt: Date.now() });
+  try{ await window.storage.set('months_index', JSON.stringify(monthsIndex), false); }catch(e){}
+  try{ await window.storage.set('active_month', id, false); }catch(e){}
+
+  currentMonthId = id;
+  trades = [];
+  loaded = true;
+  await saveTrades();
+  busy = false;
+  renderMonthTabs();
+  render();
+}
+
+async function loadTrades(){
+  try{
+    const res = await window.storage.get('trades_' + currentMonthId, false);
+    trades = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    trades = [];
+  }
+  loaded = true;
+  render();
+}
+
+async function saveTrades(monthId){
+  const targetId = monthId || currentMonthId;
+  try{
+    const res = await window.storage.set('trades_' + targetId, JSON.stringify(trades), false);
+    if(!res) console.error('Save returned no result');
+  }catch(e){
+    console.error('Storage error', e);
+  }
+}
+
+function chronological(list){
+  return [...list].sort((a,b) => {
+    const ak = a.date + ' ' + (a.time||'00:00');
+    const bk = b.date + ' ' + (b.time||'00:00');
+    if(ak !== bk) return ak < bk ? -1 : 1;
+    return a.id - b.id;
+  });
+}
+
+function mean(arr){ return arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : 0; }
+
+function stdDev(arr){
+  if(arr.length < 2) return 0;
+  const m = mean(arr);
+  const variance = arr.reduce((s,v)=> s + Math.pow(v-m,2), 0) / (arr.length - 1);
+  return Math.sqrt(variance);
+}
+
+function fmtR(v){
+  const s = (v>=0?'+':'') + v.toFixed(2) + 'R';
+  return s;
+}
+
+function computeMetrics(list){
+  const n = list.length;
+  const rs = list.map(t => t.r);
+  const wins = rs.filter(r => r > 0);
+  const losses = rs.filter(r => r < 0);
+  const winRate = n ? wins.length / n : 0;
+  const avgWin = mean(wins);
+  const avgLoss = mean(losses.map(r=>Math.abs(r)));
+  const expectancy = mean(rs);
+  const grossWin = wins.reduce((s,v)=>s+v,0);
+  const grossLoss = Math.abs(losses.reduce((s,v)=>s+v,0));
+  const profitFactor = grossLoss > 0 ? grossWin/grossLoss : (grossWin>0 ? Infinity : 0);
+  const sd = stdDev(rs);
+  const followed = list.filter(t=>t.followedRules);
+  const deviated = list.filter(t=>!t.followedRules);
+  const adherenceRate = n ? followed.length/n : 0;
+
+  const chrono = chronological(list);
+  let cum = 0, peak = 0, maxDD = 0;
+  const curve = [];
+  let curStreak = 0, maxLossStreak = 0;
+  chrono.forEach(t => {
+    cum += t.r;
+    curve.push(cum);
+    peak = Math.max(peak, cum);
+    maxDD = Math.max(maxDD, peak - cum);
+    if(t.r < 0){ curStreak++; maxLossStreak = Math.max(maxLossStreak, curStreak); }
+    else curStreak = 0;
+  });
+
+  return {
+    n, winRate, avgWin, avgLoss, expectancy, profitFactor, sd,
+    adherenceRate, followed, deviated, curve, maxDD, maxLossStreak,
+    wins: wins.length, losses: losses.length
+  };
+}
+
+function verdictFor(m){
+  if(m.n === 0) return { tag:'No data yet', text:'Log your first trade below to start the audit.' };
+  if(m.n < 20) return { tag:`${m.n} trades logged`, text:'Too early to read the edge — the win rate and R-multiples will swing a lot until you\'re past ~30–50 trades. Keep logging every trade, including the ones you\'d rather not.' };
+  const capWarn = m.n < 100 ? ' Still a small sample — treat this as a working hypothesis, not a verdict.' : '';
+  if(m.expectancy > 0 && m.profitFactor >= 1.3){
+    return { tag:`${m.n} trades logged`, text:`Expectancy is ${fmtR(m.expectancy)} per trade with a profit factor of ${m.profitFactor.toFixed(2)} — the edge looks real so far.${capWarn}` };
+  }
+  if(m.expectancy > 0){
+    return { tag:`${m.n} trades logged`, text:`Expectancy is slightly positive (${fmtR(m.expectancy)}/trade) but the profit factor (${m.profitFactor.toFixed(2)}) is thin — not yet a confirmed edge.${capWarn}` };
+  }
+  return { tag:`${m.n} trades logged`, text:`Expectancy is ${fmtR(m.expectancy)} per trade — no edge showing yet. Worth checking whether losing trades cluster around rule deviations before changing the system itself.${capWarn}` };
+}
+
+function renderStats(m){
+  const items = [
+    { label:'Expectancy', value: m.n? fmtR(m.expectancy) : '—', cls: m.expectancy>0?'pos':(m.expectancy<0?'neg':''), foot:'per trade, in R' },
+    { label:'Profit factor', value: m.n? (m.profitFactor===Infinity? '∞' : m.profitFactor.toFixed(2)) : '—', cls: m.profitFactor>1?'pos':(m.n?'neg':''), foot:'gross win ÷ gross loss' },
+    { label:'Win rate', value: m.n? (m.winRate*100).toFixed(0)+'%' : '—', cls:'', foot: m.n? `${m.wins}W / ${m.losses}L` : '' },
+    { label:'Win : loss size', value: (m.n && m.avgLoss>0)? (m.avgWin/m.avgLoss).toFixed(2)+'x' : '—', cls:'', foot: m.n? `${fmtR(m.avgWin||0)} avg win` : '' },
+    { label:'Max drawdown', value: m.n? '-'+m.maxDD.toFixed(2)+'R' : '—', cls: m.maxDD>0?'neg':'', foot:'peak to trough' },
+    { label:'Std dev (R)', value: m.n? m.sd.toFixed(2) : '—', cls:'', foot:'consistency' },
+    { label:'Adherence', value: m.n? (m.adherenceRate*100).toFixed(0)+'%' : '—', cls:'', foot:'rules followed' },
+    { label:'Worst streak', value: m.n? m.maxLossStreak : '—', cls: m.maxLossStreak>=3?'neg':'', foot:'consecutive losses' },
+  ];
+  $('statsGrid').innerHTML = items.map(it => `
+    <div class="stat">
+      <div class="label">${it.label}</div>
+      <div class="value ${it.cls}">${it.value}</div>
+      <div class="foot">${it.foot}</div>
+    </div>`).join('');
+}
+
+function renderAdherence(m){
+  if(m.n === 0){
+    $('adherenceCompare').innerHTML = `<div class="empty-note" style="grid-column:1/-1;">No trades logged yet.</div>`;
+    return;
+  }
+  const followedR = mean(m.followed.map(t=>t.r));
+  const deviatedR = mean(m.deviated.map(t=>t.r));
+  $('adherenceCompare').innerHTML = `
+    <div class="compare-card">
+      <div class="h">Followed rules</div>
+      <div class="big" style="color:var(--green)">${m.followed.length? fmtR(followedR) : '—'}</div>
+      <div class="sub">${m.followed.length} trade${m.followed.length===1?'':'s'} · avg R</div>
+    </div>
+    <div class="compare-card">
+      <div class="h">Deviated</div>
+      <div class="big" style="color:${m.deviated.length? 'var(--red)':'inherit'}">${m.deviated.length? fmtR(deviatedR) : '—'}</div>
+      <div class="sub">${m.deviated.length} trade${m.deviated.length===1?'':'s'} · avg R</div>
+    </div>`;
+}
+
+function computeHistogram(rs){
+  if(rs.length === 0) return [];
+  const min = Math.min(...rs, 0);
+  const max = Math.max(...rs, 0);
+  const range = max - min;
+  let binSize = 0.5;
+  if(range > 12) binSize = 2;
+  else if(range > 6) binSize = 1;
+  const start = Math.floor(min/binSize)*binSize;
+  let end = Math.ceil(max/binSize)*binSize;
+  if(end <= max + 1e-9) end += binSize; // guarantee a bin exists that fully contains max
+  const bins = [];
+  for(let b = start; b < end - 1e-9; b += binSize){
+    bins.push({ lo: b, hi: b+binSize, count: 0 });
+  }
+  if(bins.length === 0) bins.push({lo:start, hi:start+binSize, count:0});
+  rs.forEach(r => {
+    let idx = Math.floor((r - start) / binSize);
+    idx = Math.max(0, Math.min(bins.length-1, idx));
+    bins[idx].count++;
+  });
+  return bins;
+}
+
+function renderHistogram(rs){
+  const el = $('histChart');
+  if(rs.length === 0){
+    el.innerHTML = `<div class="empty-note">R-multiple distribution appears here once you log trades.</div>`;
+    return;
+  }
+  const bins = computeHistogram(rs);
+  const w = 460, h = 220, padL = 30, padB = 24, padT = 10, padR = 10;
+  const chartW = w - padL - padR, chartH = h - padT - padB;
+  const maxCount = Math.max(...bins.map(b=>b.count), 1);
+  const barGap = 3;
+  const barW = (chartW / bins.length) - barGap;
+  let bars = '';
+  bins.forEach((b, i) => {
+    const barH = (b.count / maxCount) * chartH;
+    const x = padL + i*(barW+barGap);
+    const y = padT + chartH - barH;
+    const color = b.lo >= 0 ? 'var(--green)' : 'var(--red)';
+    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(barH,1)}" fill="${color}" rx="2"></rect>`;
+    if(i % Math.ceil(bins.length/8 || 1) === 0){
+      bars += `<text x="${x+barW/2}" y="${h-8}" text-anchor="middle">${b.lo.toFixed(1)}</text>`;
+    }
+  });
+  const zeroX = padL + (bins.findIndex(b=>b.lo>=0)>=0 ? bins.findIndex(b=>b.lo>=0)*(barW+barGap) : chartW);
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="100%" style="overflow:visible">
+    <line x1="${padL}" y1="${padT+chartH}" x2="${w-padR}" y2="${padT+chartH}" stroke="var(--hair)"></line>
+    ${bars}
+    <text x="${padL}" y="${padT-2}" fill="var(--muted)" font-size="10">count</text>
+  </svg>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--font-mono)">R-multiple bins</div>`;
+}
+
+function renderEquity(curve){
+  const el = $('equityChart');
+  if(curve.length === 0){
+    el.innerHTML = `<div class="empty-note">Equity curve (cumulative R) appears here once you log trades.</div>`;
+    return;
+  }
+  const w = 460, h = 220, padL = 34, padB = 24, padT = 12, padR = 12;
+  const chartW = w - padL - padR, chartH = h - padT - padB;
+  const min = Math.min(...curve, 0), max = Math.max(...curve, 0);
+  const range = (max - min) || 1;
+  const pts = curve.map((v,i) => {
+    const x = padL + (curve.length===1 ? chartW/2 : (i/(curve.length-1))*chartW);
+    const y = padT + chartH - ((v - min)/range)*chartH;
+    return [x,y];
+  });
+  const zeroY = padT + chartH - ((0-min)/range)*chartH;
+  const linePath = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const areaPath = linePath + ` L${pts[pts.length-1][0].toFixed(1)} ${zeroY.toFixed(1)} L${pts[0][0].toFixed(1)} ${zeroY.toFixed(1)} Z`;
+  const last = curve[curve.length-1];
+  const lastColor = last>=0 ? 'var(--green)' : 'var(--red)';
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="100%" style="overflow:visible">
+    <line x1="${padL}" y1="${zeroY}" x2="${w-padR}" y2="${zeroY}" stroke="var(--hair)" stroke-dasharray="3,3"></line>
+    <path d="${areaPath}" fill="${lastColor}" opacity="0.12"></path>
+    <path d="${linePath}" fill="none" stroke="${lastColor}" stroke-width="2"></path>
+    <text x="${padL}" y="${zeroY-4}" fill="var(--muted)" font-size="10">0R</text>
+    <text x="${pts[pts.length-1][0]}" y="${pts[pts.length-1][1]-8}" text-anchor="end" fill="${lastColor}" font-size="11">${fmtR(last)}</text>
+  </svg>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--font-mono)">Cumulative R by trade sequence</div>`;
+}
+
+function renderLog(){
+  const desc = $('logDesc');
+  desc.textContent = trades.length ? `${trades.length} trade${trades.length===1?'':'s'} logged, most recent first.` : 'No trades logged yet.';
+  const sorted = [...trades].sort((a,b)=>{
+    const ak = a.date + ' ' + (a.time||'00:00');
+    const bk = b.date + ' ' + (b.time||'00:00');
+    if(ak !== bk) return ak < bk ? 1 : -1;
+    return b.id - a.id;
+  });
+  $('logBody').innerHTML = sorted.map(t => `
+    <tr onclick="openDetail(${t.id})">
+      <td>${t.date}</td>
+      <td>${t.time ? t.time : '—'}</td>
+      <td>${t.symbol ? escapeHtml(t.symbol) : '—'}</td>
+      <td class="${t.r>0?'r-pos':(t.r<0?'r-neg':'')}">${fmtR(t.r)}</td>
+      <td>${t.pnl!==null && t.pnl!==undefined && t.pnl!=='' ? '$'+Number(t.pnl).toFixed(2) : '—'}</td>
+      <td class="setup">${t.setup ? escapeHtml(t.setup) : '—'}</td>
+      <td><span class="rule-dot ${t.followedRules?'yes':'no'}" title="${t.followedRules?'Followed rules':'Deviated'}"></span></td>
+      <td>${t.screenshot ? `<span class="shot-flag">🖼</span>` : `<span class="shot-none">—</span>`}</td>
+      <td><button class="del-btn" onclick="event.stopPropagation(); deleteTrade(${t.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function detailField(label, value, cls){
+  return `<div class="detail-field">
+    <div class="detail-label">${label}</div>
+    <div class="detail-value ${cls||''}">${value}</div>
+  </div>`;
+}
+
+async function openDetail(id){
+  const t = trades.find(tr => tr.id === id);
+  if(!t) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+
+  const rClass = t.r>0 ? 'r-pos-text' : (t.r<0 ? 'r-neg-text' : '');
+  const fields = [
+    detailField('Date', t.date),
+    detailField('Time', t.time || '—'),
+    detailField('Symbol', t.symbol ? escapeHtml(t.symbol) : '—'),
+    detailField('R-multiple', fmtR(t.r), rClass),
+    detailField('P&amp;L', t.pnl!==null && t.pnl!==undefined && t.pnl!=='' ? '$'+Number(t.pnl).toFixed(2) : '—'),
+    detailField('Setup / tag', t.setup ? escapeHtml(t.setup) : '—'),
+    detailField('Followed rules', t.followedRules ? 'Yes' : 'No', t.followedRules ? 'r-pos-text' : 'r-neg-text'),
+  ].join('');
+
+  overlay.innerHTML = `
+    <div class="detail-box">
+      <button class="lightbox-close" onclick="this.parentElement.parentElement.remove()">✕</button>
+      <div class="detail-header">
+        <div class="detail-eyebrow">Trade entry</div>
+        <div class="detail-title">${t.symbol ? escapeHtml(t.symbol) : 'Unlabeled trade'} · ${t.date}</div>
+      </div>
+      <div class="detail-body ${t.screenshot ? 'has-shot' : 'no-shot'}">
+        <div class="detail-grid">${fields}</div>
+        <div class="detail-shot-area">
+          ${t.screenshot ? `<img src="${t.screenshot}" alt="Trade screenshot">` : '<div class="detail-no-shot">No screenshot attached to this trade.</div>'}
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+window.openDetail = openDetail;
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showPromptModal(title, defaultValue, confirmLabel){
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-title">${escapeHtml(title)}</div>
+        <input type="text" class="modal-input" id="modalInput" value="${escapeHtml(defaultValue||'')}">
+        <div class="modal-actions">
+          <button class="modal-btn ghost" id="modalCancel">Cancel</button>
+          <button class="modal-btn primary" id="modalOk">${escapeHtml(confirmLabel||'OK')}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#modalInput');
+    input.focus();
+    input.select();
+    const cleanup = (result) => { overlay.remove(); resolve(result); };
+    overlay.querySelector('#modalCancel').addEventListener('click', () => cleanup(null));
+    overlay.querySelector('#modalOk').addEventListener('click', () => cleanup(input.value));
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); cleanup(input.value); }
+      if(e.key === 'Escape') cleanup(null);
+    });
+    overlay.addEventListener('click', (e) => { if(e.target === overlay) cleanup(null); });
+  });
+}
+
+function showConfirmModal(message, confirmLabel){
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-title">${escapeHtml(message)}</div>
+        <div class="modal-actions">
+          <button class="modal-btn ghost" id="modalCancel">Cancel</button>
+          <button class="modal-btn danger" id="modalOk">${escapeHtml(confirmLabel||'Confirm')}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const cleanup = (result) => { overlay.remove(); resolve(result); };
+    overlay.querySelector('#modalCancel').addEventListener('click', () => cleanup(false));
+    overlay.querySelector('#modalOk').addEventListener('click', () => cleanup(true));
+    overlay.addEventListener('click', (e) => { if(e.target === overlay) cleanup(false); });
+  });
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 2400);
+}
+
+function render(){
+  if(!loaded){
+    $('verdictText').textContent = 'Loading your ledger…';
+    return;
+  }
+  const m = computeMetrics(trades);
+  const v = verdictFor(m);
+  $('verdictText').parentElement.querySelector('.tag').textContent = v.tag;
+  $('verdictText').textContent = v.text;
+  renderStats(m);
+  renderAdherence(m);
+  renderHistogram(m.n ? trades.map(t=>t.r) : []);
+  renderEquity(m.curve);
+  renderLog();
+}
+
+async function deleteTrade(id){
+  if(busy) return;
+  busy = true;
+  renderMonthTabs();
+  const monthId = currentMonthId;
+  trades = trades.filter(t => t.id !== id);
+  await saveTrades(monthId);
+  busy = false;
+  renderMonthTabs();
+  render();
+}
+window.deleteTrade = deleteTrade;
+
+$('addBtn').addEventListener('click', async () => {
+  if(busy) return;
+  const date = $('f-date').value;
+  const time = $('f-time').value;
+  const symbol = $('f-symbol').value.trim();
+  const rRaw = $('f-r').value;
+  const pnlRaw = $('f-pnl').value;
+  const setup = $('f-setup').value.trim();
+  const followedRules = $('f-rules').checked;
+  const shotFile = $('f-shot').files[0];
+
+  if(!date || rRaw === ''){
+    $('formError').style.display = 'block';
+    return;
+  }
+  $('formError').style.display = 'none';
+
+  busy = true;
+  renderMonthTabs();
+  const monthId = currentMonthId; // pin to the month this trade was started in
+
+  const addBtn = $('addBtn');
+  addBtn.disabled = true;
+  const originalLabel = addBtn.textContent;
+  addBtn.textContent = 'Adding…';
+
+  const id = Date.now();
+  let screenshot = null;
+
+  if(shotFile){
+    try{
+      screenshot = await resizeImage(shotFile, 900);
+    }catch(e){
+      console.error('Screenshot processing failed', e);
+      $('formError').textContent = 'The trade was logged, but the screenshot couldn\'t be processed — try a different image.';
+      $('formError').style.display = 'block';
+      screenshot = null;
+    }
+  }
+
+  const trade = {
+    id, date, time, symbol,
+    r: parseFloat(rRaw),
+    pnl: pnlRaw === '' ? null : parseFloat(pnlRaw),
+    setup, followedRules, screenshot
+  };
+  trades.push(trade);
+  await saveTrades(monthId);
+
+  busy = false;
+  renderMonthTabs();
+
+  // Only refresh the visible dashboard if the user is still on the month this trade belongs to —
+  // if they can't switch months while busy, this is always true, but it's a harmless safety check.
+  if(monthId === currentMonthId) render();
+
+  $('f-symbol').value = '';
+  $('f-r').value = '';
+  $('f-pnl').value = '';
+  $('f-setup').value = '';
+  $('f-rules').checked = true;
+  $('f-shot').value = '';
+  $('f-date').value = todayStr();
+  $('f-time').value = nowTimeStr();
+  addBtn.disabled = false;
+  addBtn.textContent = originalLabel;
+});
+
+$('resetBtn').addEventListener('click', async () => {
+  if(busy) return;
+  const m = monthsIndex.find(mo => mo.id === currentMonthId);
+  const label = m ? m.label : 'this month';
+  const ok = await showConfirmModal(`Clear all trades logged in ${label}? This can't be undone.`, 'Clear');
+  if(!ok) return;
+  busy = true;
+  renderMonthTabs();
+  const monthId = currentMonthId;
+  trades = [];
+  await saveTrades(monthId);
+  busy = false;
+  renderMonthTabs();
+  render();
+});
+
+(async function init(){
+  await initMonths();
+  renderMonthTabs();
+  await loadTrades();
+})();
+</script>
+</body>
+</html>
